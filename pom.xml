@@ -20,6 +20,16 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  <scm>
+    <connection>scm:git:https://github.com/axibase/date-processor.git</connection>
+    <developerConnection>scm:git:https://github.com/axibase/date-processor.git</developerConnection>
+    <url>https://github.com/axibase/date-processor.git</url>
+    <tag>HEAD</tag>
+  </scm>
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/axibase/date-processor</url>
+  </ciManagement>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
