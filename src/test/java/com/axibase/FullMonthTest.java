@@ -14,12 +14,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 @RunWith(Parameterized.class)
-public class FullMonthTests {
+public class FullMonthTest {
     private final FullMonthAssertion assertion;
     private final Locale locale;
     private final String input;
 
-    public FullMonthTests(FullMonthAssertion assertion, Locale locale, String input) {
+    public FullMonthTest(FullMonthAssertion assertion, Locale locale, String input) {
         this.assertion = assertion;
         this.locale = locale;
         this.input = input;

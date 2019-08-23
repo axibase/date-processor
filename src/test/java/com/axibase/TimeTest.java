@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 
-public class TimeTests {
+public class TimeTest {
     @Test
     public void testParse() {
         long tz = PatternResolver.createNewFormatter("dd.MM.yyyy HH:mm:ss.SSS")

@@ -9,7 +9,7 @@ import java.time.ZoneId;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-public class DocumentationTests {
+public class DocumentationTest {
     @Test
     public void testSqlDateTimeFormat() {
         final DatetimeProcessor formatter = PatternResolver.createNewFormatter("yyyy.MM.dd HH:mm:ss.SSS z");
