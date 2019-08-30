@@ -16,14 +16,16 @@ import static com.axibase.date.DatetimeProcessorUtil.toMillis;
 
 class DatetimeProcessorCustom implements DatetimeProcessor {
     private final DateTimeFormatter dateTimeFormatter;
+    private final ZoneId zoneId;
 
-    DatetimeProcessorCustom(DateTimeFormatter dateTimeFormatter) {
+    DatetimeProcessorCustom(DateTimeFormatter dateTimeFormatter, ZoneId zoneId) {
         this.dateTimeFormatter = dateTimeFormatter;
+        this.zoneId = zoneId;
     }
 
     @Override
     public long parseMillis(String datetime) {
-        return toMillis(parse(datetime));
+        return toMillis(parse(datetime, zoneId));
     }
 
     @Override
@@ -33,7 +35,7 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return parseMillisFailSafe(datetime, null);
+        return parseMillisFailSafe(datetime, zoneId);
     }
 
     @Override
@@ -43,7 +45,7 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
 
     @Override
     public String print(long timestamp) {
-        return timestampToZonedDateTime(timestamp, ZoneId.systemDefault()).format(dateTimeFormatter);
+        return print(timestamp, zoneId);
     }
 
     @Override
@@ -56,7 +58,12 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
         if (locale.equals(dateTimeFormatter.getLocale())) {
             return this;
         }
-        return new DatetimeProcessorCustom(dateTimeFormatter.withLocale(locale));
+        return new DatetimeProcessorCustom(dateTimeFormatter.withLocale(locale), zoneId);
+    }
+
+    @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorCustom(dateTimeFormatter, zoneId);
     }
 
     private static LocalDate resolveDateFromTemporal(TemporalAccessor parsed) {
@@ -114,18 +121,18 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
      * Parse datetime string  {@param value} using {@param formatter}. Provides default values for most fields,
      * so should be equivalent to SimpleDateFormat and joda-time for string-to-long timestamp converting operations.
      * @param datetime datetime as string
-     * @param defaultZoneId zone id used if can not be resolved by formatter. Server time zone used, if null.
+     * @param defaultZoneId zone id used if can not be resolved by formatter.
      * @return millis from epoch
      */
     private ZonedDateTime parseMillisFailSafe(String datetime, ZoneId defaultZoneId) {
         final TemporalAccessor parsed = dateTimeFormatter.parse(datetime);
         final LocalDate localDate = resolveDateFromTemporal(parsed);
         final LocalTime localTime = resolveTimeFromTemporal(parsed);
-        ZoneId zoneId = parsed.query(TemporalQueries.zone());
-        if (zoneId == null) {
-            zoneId = defaultZoneId == null ? ZoneId.systemDefault() : defaultZoneId;
+        ZoneId zone = parsed.query(TemporalQueries.zone());
+        if (zone == null) {
+            zone = defaultZoneId;
         }
-        return ZonedDateTime.of(localDate, localTime, zoneId);
+        return ZonedDateTime.of(localDate, localTime, zone);
     }
 
 }

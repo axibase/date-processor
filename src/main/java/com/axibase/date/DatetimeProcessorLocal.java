@@ -9,17 +9,17 @@ import static com.axibase.date.DatetimeProcessorUtil.toMillis;
 class DatetimeProcessorLocal implements DatetimeProcessor {
     private final int fractionsOfSecond;
     private final ZoneOffsetType offsetType;
-    private final ZoneId localZoneId = ZoneId.systemDefault();
+    private final ZoneId zoneId;
 
-    DatetimeProcessorLocal(int fractionsOfSecond, ZoneOffsetType offsetType) {
+    DatetimeProcessorLocal(int fractionsOfSecond, ZoneOffsetType offsetType, ZoneId zoneId) {
         this.fractionsOfSecond = fractionsOfSecond;
         this.offsetType = offsetType;
+        this.zoneId = zoneId;
     }
-
 
     @Override
     public long parseMillis(String datetime) {
-        return parseMillis(datetime, localZoneId);
+        return parseMillis(datetime, zoneId);
     }
 
     @Override
@@ -29,7 +29,7 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, ' ', localZoneId, offsetType);
+        return DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, ' ', zoneId, offsetType);
     }
 
     @Override
@@ -39,7 +39,7 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
 
     @Override
     public String print(long timestamp) {
-        return DatetimeProcessorUtil.printIso8601(timestamp, ' ', localZoneId, offsetType, fractionsOfSecond);
+        return DatetimeProcessorUtil.printIso8601(timestamp, ' ', zoneId, offsetType, fractionsOfSecond);
     }
 
     @Override
@@ -53,7 +53,13 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
     }
 
     @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorLocal(fractionsOfSecond, offsetType, zoneId);
+    }
+
+    @Override
     public boolean canParse(String date) {
-        return DatetimeProcessorUtil.checkExpectedMilliseconds(date, fractionsOfSecond) && DatetimeProcessor.super.canParse(date);
+        return DatetimeProcessorUtil.checkExpectedMilliseconds(date, fractionsOfSecond)
+                && DatetimeProcessor.super.canParse(date);
     }
 }

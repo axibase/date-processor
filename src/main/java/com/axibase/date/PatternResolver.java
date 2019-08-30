@@ -1,5 +1,6 @@
 package com.axibase.date;
 
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
@@ -16,33 +17,40 @@ public class PatternResolver {
     private static final Pattern DISABLE_LENIENT_MODE = Pattern.compile("^(?:u+|[^u]*u{1,3}[A-Za-z0-9]+)$");
 
     public static DatetimeProcessor createNewFormatter(String pattern) {
-        if ("seconds".equalsIgnoreCase(pattern)) {
-           return new DatetimeProcessorUnixSeconds();
-        } else if ("milliseconds".equalsIgnoreCase(pattern)) {
-           return new DatetimeProcessorUnixMillis();
-        } else if ("tivoli".equalsIgnoreCase(pattern)) {
-            return new DatetimeProcessorTivoli(false);
-        } else if ("tivoli X".equalsIgnoreCase(pattern)) {
-            return new DatetimeProcessorTivoli(true);
-        } else if ("iso".equalsIgnoreCase(pattern)) {
-            return new DatetimeProcessorIso8601(3, ZoneOffsetType.ISO8601);
-        } else if ("MMM".equals(pattern)) {
-            return new ShortMonthDateTimeProcessor(Locale.getDefault(Locale.Category.FORMAT));
-        } else if ("MMMM".equals(pattern)) {
-            return new FullMonthDatetimeProcessor(Locale.getDefault(Locale.Category.FORMAT));
-        }
-        return createFromDynamicPattern(pattern);
+        return createNewFormatter(pattern, ZoneId.systemDefault());
     }
 
-    private static DatetimeProcessor createFromDynamicPattern(String pattern) {
+    public static DatetimeProcessor createNewFormatter(String pattern, ZoneId zoneId) {
+        final DatetimeProcessor result;
+        if ("seconds".equalsIgnoreCase(pattern)) {
+           result = new DatetimeProcessorUnixSeconds(zoneId);
+        } else if ("milliseconds".equalsIgnoreCase(pattern)) {
+           result = new DatetimeProcessorUnixMillis(zoneId);
+        } else if ("tivoli".equalsIgnoreCase(pattern)) {
+            result = new DatetimeProcessorTivoli(false, zoneId);
+        } else if ("tivoli X".equalsIgnoreCase(pattern)) {
+            result = new DatetimeProcessorTivoli(true, zoneId);
+        } else if ("iso".equalsIgnoreCase(pattern)) {
+            result = new DatetimeProcessorIso8601(3, ZoneOffsetType.ISO8601, zoneId);
+        } else if ("MMM".equals(pattern)) {
+            result = new ShortMonthDateTimeProcessor(Locale.getDefault(Locale.Category.FORMAT), zoneId);
+        } else if ("MMMM".equals(pattern)) {
+            result = new FullMonthDatetimeProcessor(Locale.getDefault(Locale.Category.FORMAT), zoneId);
+        } else {
+            result = createFromDynamicPattern(pattern, zoneId);
+        }
+        return result;
+    }
+
+    private static DatetimeProcessor createFromDynamicPattern(String pattern, ZoneId zoneId) {
         final Matcher matcher = OPTIMIZED_PATTERN.matcher(pattern);
         if (matcher.matches()) {
             final int fractions = stringLength(matcher.group(2)) - 1;
             final ZoneOffsetType offsetType = ZoneOffsetType.byPattern(matcher.group(3));
             if (" ".equals(matcher.group(1))) {
-                return new DatetimeProcessorLocal(fractions, offsetType);
+                return new DatetimeProcessorLocal(fractions, offsetType, zoneId);
             } else if (offsetType != ZoneOffsetType.NONE) {
-                return new DatetimeProcessorIso8601(fractions, offsetType);
+                return new DatetimeProcessorIso8601(fractions, offsetType, zoneId);
             }
         }
         final String preprocessedPattern = preprocessPattern(pattern);
@@ -55,7 +63,7 @@ public class PatternResolver {
                 .appendPattern(preprocessedPattern)
                 .toFormatter(Locale.US)
                 .withResolverStyle(ResolverStyle.STRICT);
-        return new DatetimeProcessorCustom(dateTimeFormatter);
+        return new DatetimeProcessorCustom(dateTimeFormatter, zoneId);
     }
 
     private static int stringLength(String value) {
