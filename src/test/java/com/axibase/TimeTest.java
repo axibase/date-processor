@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 public class TimeTest {
     @Test
-    public void testParse() {
+    public void testCorrectTimeZoneOffset() {
         long tz = PatternResolver.createNewFormatter("dd.MM.yyyy HH:mm:ss.SSS")
                 .parseMillis("29.09.2015 00:00:00.000", ZoneId.of("America/Port-au-Prince"));
         long utc = PatternResolver.createNewFormatter("dd.MM.yyyy HH:mm:ss.SSS")
