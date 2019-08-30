@@ -8,6 +8,12 @@ import java.util.Locale;
 import static com.axibase.date.DatetimeProcessorUtil.MILLISECONDS_IN_SECOND;
 
 class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
+    private final ZoneId zoneId;
+
+    DatetimeProcessorUnixSeconds(ZoneId zoneId) {
+        this.zoneId = zoneId;
+    }
+
     @Override
     public long parseMillis(String datetime) {
         if (datetime.indexOf('.') == -1) {
@@ -23,7 +29,7 @@ class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return parse(datetime, ZoneId.systemDefault());
+        return parse(datetime, zoneId);
     }
 
     @Override
@@ -51,6 +57,11 @@ class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
     @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
+    }
+
+    @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorUnixSeconds(zoneId);
     }
 
     @Override

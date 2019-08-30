@@ -7,6 +7,12 @@ import java.util.Locale;
 import static com.axibase.date.DatetimeProcessorUtil.timestampToZonedDateTime;
 
 class DatetimeProcessorUnixMillis implements DatetimeProcessor {
+    private final ZoneId zoneId;
+
+    DatetimeProcessorUnixMillis(ZoneId zoneId) {
+        this.zoneId = zoneId;
+    }
+
     @Override
     public long parseMillis(String datetime) {
         return Long.parseLong(datetime);
@@ -19,7 +25,7 @@ class DatetimeProcessorUnixMillis implements DatetimeProcessor {
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return parse(datetime, ZoneId.systemDefault());
+        return parse(datetime, zoneId);
     }
 
     @Override
@@ -40,5 +46,10 @@ class DatetimeProcessorUnixMillis implements DatetimeProcessor {
     @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
+    }
+
+    @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorUnixMillis(zoneId);
     }
 }

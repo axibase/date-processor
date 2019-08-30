@@ -8,11 +8,12 @@ import static com.axibase.date.DatetimeProcessorUtil.timestampToZonedDateTime;
 import static com.axibase.date.DatetimeProcessorUtil.toMillis;
 
 class DatetimeProcessorTivoli implements DatetimeProcessor {
-    private final ZoneId localZoneId = ZoneId.systemDefault();
     private final boolean parseZoneId;
+    private final ZoneId localZoneId;
 
-    DatetimeProcessorTivoli(boolean parseZoneId) {
+    DatetimeProcessorTivoli(boolean parseZoneId, ZoneId zoneId) {
         this.parseZoneId = parseZoneId;
+        this.localZoneId = zoneId;
     }
 
     @Override
@@ -50,5 +51,10 @@ class DatetimeProcessorTivoli implements DatetimeProcessor {
     @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
+    }
+
+    @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.localZoneId.equals(zoneId) ? this : new DatetimeProcessorTivoli(parseZoneId, zoneId);
     }
 }

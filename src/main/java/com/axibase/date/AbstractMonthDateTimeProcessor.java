@@ -14,18 +14,26 @@ import java.util.TreeMap;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 
 abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
-    private final DateTimeFormatter formatter;
-    private final Map<String, Month> monthMap;
+    final DateTimeFormatter formatter;
+    final Map<String, Month> monthMap;
+    final ZoneId defaultZone;
 
-    AbstractMonthDateTimeProcessor(Locale locale, TextStyle textStyle, TextStyle standaloneTextStyle) {
-        final DateTimeFormatter defaultFormatter = new DateTimeFormatterBuilder().
-                appendText(MONTH_OF_YEAR, textStyle)
+    AbstractMonthDateTimeProcessor(Locale locale, TextStyle textStyle, TextStyle standaloneTextStyle, ZoneId zoneId) {
+        final DateTimeFormatter defaultFormatter = new DateTimeFormatterBuilder()
+                .appendText(MONTH_OF_YEAR, textStyle)
                 .toFormatter(locale);
         final DateTimeFormatter standaloneFormatter = new DateTimeFormatterBuilder()
                 .appendText(MONTH_OF_YEAR, standaloneTextStyle)
                 .toFormatter(locale);
         this.formatter = defaultFormatter;
         this.monthMap = prepareMap(defaultFormatter, standaloneFormatter);
+        this.defaultZone = zoneId;
+    }
+
+    AbstractMonthDateTimeProcessor(DateTimeFormatter formatter, Map<String, Month> monthMap, ZoneId defaultZone) {
+        this.formatter = formatter;
+        this.monthMap = monthMap;
+        this.defaultZone = defaultZone;
     }
 
     private static Map<String, Month> prepareMap(DateTimeFormatter formatter, DateTimeFormatter standaloneFormatter) {
@@ -51,7 +59,7 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
 
     @Override
     public long parseMillis(String datetime) {
-        return parseMillis(datetime, ZoneId.systemDefault());
+        return parseMillis(datetime, defaultZone);
     }
 
     @Override
@@ -61,7 +69,7 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return parse(datetime, ZoneId.systemDefault());
+        return parse(datetime, defaultZone);
     }
 
     @Override
@@ -71,7 +79,7 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
 
     @Override
     public String print(long timestamp) {
-        return print(timestamp, ZoneId.systemDefault());
+        return print(timestamp, defaultZone);
     }
 
     @Override

@@ -9,11 +9,12 @@ import static com.axibase.date.DatetimeProcessorUtil.toMillis;
 class DatetimeProcessorIso8601 implements DatetimeProcessor {
     private final int fractionsOfSecond;
     private final ZoneOffsetType zoneOffsetType;
-    private final ZoneId localZoneId = ZoneId.systemDefault();
+    private final ZoneId zoneId;
 
-    DatetimeProcessorIso8601(int fractionsOfSecond, ZoneOffsetType zoneOffsetType) {
+    DatetimeProcessorIso8601(int fractionsOfSecond, ZoneOffsetType zoneOffsetType, ZoneId zoneId) {
         this.fractionsOfSecond = fractionsOfSecond;
         this.zoneOffsetType = zoneOffsetType;
+        this.zoneId = zoneId;
     }
 
     @Override
@@ -23,12 +24,14 @@ class DatetimeProcessorIso8601 implements DatetimeProcessor {
 
     @Override
     public long parseMillis(String datetime, ZoneId zoneId) {
-        return toMillis(DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, 'T', zoneId, zoneOffsetType));
+        return toMillis(
+                DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, 'T', zoneId, zoneOffsetType)
+        );
     }
 
     @Override
     public ZonedDateTime parse(String datetime) {
-        return DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, 'T', localZoneId, zoneOffsetType);
+        return DatetimeProcessorUtil.parseIso8601AsZonedDateTime(datetime, 'T', zoneId, zoneOffsetType);
     }
 
     @Override
@@ -38,7 +41,7 @@ class DatetimeProcessorIso8601 implements DatetimeProcessor {
 
     @Override
     public String print(long timestamp) {
-        return DatetimeProcessorUtil.printIso8601(timestamp, 'T', localZoneId, zoneOffsetType, fractionsOfSecond);
+        return DatetimeProcessorUtil.printIso8601(timestamp, 'T', zoneId, zoneOffsetType, fractionsOfSecond);
     }
 
     @Override
@@ -52,7 +55,14 @@ class DatetimeProcessorIso8601 implements DatetimeProcessor {
     }
 
     @Override
+    public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
+        return this.zoneId.equals(zoneId) ? this :
+                new DatetimeProcessorIso8601(fractionsOfSecond, zoneOffsetType, zoneId);
+    }
+
+    @Override
     public boolean canParse(String date) {
-        return DatetimeProcessorUtil.checkExpectedMilliseconds(date, fractionsOfSecond) && DatetimeProcessor.super.canParse(date);
+        return DatetimeProcessorUtil.checkExpectedMilliseconds(date, fractionsOfSecond)
+                && DatetimeProcessor.super.canParse(date);
     }
 }

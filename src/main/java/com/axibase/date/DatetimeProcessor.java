@@ -19,6 +19,8 @@ public interface DatetimeProcessor extends DatetimePatternTester {
 
     DatetimeProcessor withLocale(Locale locale);
 
+    DatetimeProcessor withDefaultZone(ZoneId zoneId);
+
     default boolean canParse(String date) {
         try {
             final ZonedDateTime parsed = parse(date);
