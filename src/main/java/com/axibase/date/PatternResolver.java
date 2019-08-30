@@ -31,6 +31,10 @@ public class PatternResolver {
         } else if ("MMMM".equals(pattern)) {
             return new FullMonthDatetimeProcessor(Locale.getDefault(Locale.Category.FORMAT));
         }
+        return createFromDynamicPattern(pattern);
+    }
+
+    private static DatetimeProcessor createFromDynamicPattern(String pattern) {
         final Matcher matcher = OPTIMIZED_PATTERN.matcher(pattern);
         if (matcher.matches()) {
             final int fractions = stringLength(matcher.group(2)) - 1;

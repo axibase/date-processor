@@ -53,7 +53,7 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
 
     @Override
     public DatetimeProcessor withLocale(Locale locale) {
-        if (locale == dateTimeFormatter.getLocale()) {
+        if (locale.equals(dateTimeFormatter.getLocale())) {
             return this;
         }
         return new DatetimeProcessorCustom(dateTimeFormatter.withLocale(locale));
@@ -64,7 +64,7 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
         if (query != null) {
             return query;
         }
-        int year = 1970;
+        int year = DatetimeProcessorUtil.UNIX_EPOCH_YEAR;
         int month = 1;
         int day = 1;
         if (parsed.isSupported(ChronoField.YEAR)) {

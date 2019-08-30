@@ -23,7 +23,7 @@ public interface DatetimeProcessor extends DatetimePatternTester {
         try {
             final ZonedDateTime parsed = parse(date);
             final int year = parsed.getYear();
-            return year >= 1900 && year < 2200;
+            return year >= DatetimeProcessorUtil.UNIX_EPOCH_YEAR && year < DatetimeProcessorUtil.MAX_YEAR;
         } catch (Exception e) {
             return false;
         }

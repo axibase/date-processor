@@ -7,7 +7,7 @@ import java.util.Locale;
 
 import static com.axibase.date.DatetimeProcessorUtil.MILLISECONDS_IN_SECOND;
 
-public class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
+class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
     @Override
     public long parseMillis(String datetime) {
         if (datetime.indexOf('.') == -1) {

@@ -2,14 +2,17 @@ package com.axibase.date;
 
 import java.time.*;
 
-public class DatetimeProcessorUtil {
-    private DatetimeProcessorUtil() {}
-
-    public static final int NANOS_IN_MILLIS = 1_000_000;
-    public static final int MILLISECONDS_IN_SECOND = 1000;
+@SuppressWarnings("squid:S109") // magic constant
+public final class DatetimeProcessorUtil {
+    static final int NANOS_IN_MILLIS = 1_000_000;
+    static final int MILLISECONDS_IN_SECOND = 1000;
+    static final int UNIX_EPOCH_YEAR = 1970;
+    static final int MAX_YEAR = 2200;
     private static final int ISO_LENGTH = "1970-01-01T00:00:00.000000000+00:00".length();
     private static final int TIVOLI_LENGTH = "1yyMMddHHmmssSSS".length();
     private static final int TIVOLI_EPOCH_YEAR = 1900;
+
+    private DatetimeProcessorUtil() {}
 
     /**
      * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]

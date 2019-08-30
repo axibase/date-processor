@@ -18,10 +18,14 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
     private final Map<String, Month> monthMap;
 
     AbstractMonthDateTimeProcessor(Locale locale, TextStyle textStyle, TextStyle standaloneTextStyle) {
-        final DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendText(MONTH_OF_YEAR, textStyle).toFormatter(locale);
-        final DateTimeFormatter standaloneFormatter = new DateTimeFormatterBuilder().appendText(MONTH_OF_YEAR, standaloneTextStyle).toFormatter(locale);
-        this.formatter = formatter;
-        this.monthMap = prepareMap(formatter, standaloneFormatter);
+        final DateTimeFormatter defaultFormatter = new DateTimeFormatterBuilder().
+                appendText(MONTH_OF_YEAR, textStyle)
+                .toFormatter(locale);
+        final DateTimeFormatter standaloneFormatter = new DateTimeFormatterBuilder()
+                .appendText(MONTH_OF_YEAR, standaloneTextStyle)
+                .toFormatter(locale);
+        this.formatter = defaultFormatter;
+        this.monthMap = prepareMap(defaultFormatter, standaloneFormatter);
     }
 
     private static Map<String, Month> prepareMap(DateTimeFormatter formatter, DateTimeFormatter standaloneFormatter) {
@@ -42,9 +46,8 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
         if (parsedMonth == null) {
             throw new DateTimeParseException("Text '" + month + "' could not be parsed at index 0", month, 0);
         }
-        return ZonedDateTime.of(1970, parsedMonth.getValue(), 1, 0, 0, 0, 0, zoneId);
+        return ZonedDateTime.of(DatetimeProcessorUtil.UNIX_EPOCH_YEAR, parsedMonth.getValue(), 1, 0, 0, 0, 0, zoneId);
     }
-
 
     @Override
     public long parseMillis(String datetime) {
