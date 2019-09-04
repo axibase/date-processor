@@ -22,15 +22,15 @@ public class PatternResolver {
 
     public static DatetimeProcessor createNewFormatter(String pattern, ZoneId zoneId) {
         final DatetimeProcessor result;
-        if ("seconds".equalsIgnoreCase(pattern)) {
+        if (NamedPatterns.SECONDS.equalsIgnoreCase(pattern)) {
            result = new DatetimeProcessorUnixSeconds(zoneId);
-        } else if ("milliseconds".equalsIgnoreCase(pattern)) {
+        } else if (NamedPatterns.MILLISECONDS.equalsIgnoreCase(pattern)) {
            result = new DatetimeProcessorUnixMillis(zoneId);
-        } else if ("tivoli".equalsIgnoreCase(pattern)) {
+        } else if (NamedPatterns.TIVOLI.equalsIgnoreCase(pattern)) {
             result = new DatetimeProcessorTivoli(false, zoneId);
-        } else if ("tivoli X".equalsIgnoreCase(pattern)) {
+        } else if (NamedPatterns.TIVOLI_WITH_ZONE_OFFSET.equalsIgnoreCase(pattern)) {
             result = new DatetimeProcessorTivoli(true, zoneId);
-        } else if ("iso".equalsIgnoreCase(pattern)) {
+        } else if (NamedPatterns.ISO.equalsIgnoreCase(pattern)) {
             result = new DatetimeProcessorIso8601(3, ZoneOffsetType.ISO8601, zoneId);
         } else if ("MMM".equals(pattern)) {
             result = new ShortMonthDateTimeProcessor(Locale.getDefault(Locale.Category.FORMAT), zoneId);
