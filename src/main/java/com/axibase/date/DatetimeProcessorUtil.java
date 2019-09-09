@@ -108,37 +108,38 @@ public final class DatetimeProcessorUtil {
         }
     }
 
-    public static ZonedDateTime parseIso8601AsZonedDateTime(String date, char delimiter, ZoneId defaultOffset, ZoneOffsetType offsetType) {
+    public static ZonedDateTime parseIso8601AsZonedDateTime(String date, char delimiter,
+                                                            ZoneId defaultOffset, ZoneOffsetType offsetType) {
         try {
-            final int length = date.length();
-
             final ParsingContext context = new ParsingContext();
             final LocalDateTime localDateTime = parseIso8601AsLocalDateTime(date, delimiter, context);
-            int offset = context.offset;
-            // extract timezone
-            final ZoneId zoneId;
-            if (offset == length) {
-                if (offsetType != ZoneOffsetType.NONE || defaultOffset == null) {
-                    throw new IllegalStateException("Zone offset required");
-                }
-                zoneId = defaultOffset;
-            } else {
-                if (offsetType == ZoneOffsetType.NONE) {
-                    throw new IllegalStateException("Zone offset unexpected");
-                }
-                final char timezoneIndicator = date.charAt(offset);
-                if (timezoneIndicator == 'Z' && offset == length - 1) {
-                    zoneId = ZoneOffset.UTC;
-                } else {
-                    zoneId = ZoneOffset.of(date.substring(offset));
-                }
-            }
+            final ZoneId zoneId = extractOffset(date, context.offset, offsetType, defaultOffset);
             return ZonedDateTime.of(localDateTime, zoneId);
-        } catch (IndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Failed to parse date " + date, e);
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Invalid date " + date, e);
+            throw new IllegalArgumentException("Failed to parse date " + date, e);
         }
+    }
+
+    private static ZoneId extractOffset(String date, int offset, ZoneOffsetType offsetType, ZoneId defaultOffset) {
+        final int length = date.length();
+        final ZoneId zoneId;
+        if (offset == length) {
+            if (offsetType != ZoneOffsetType.NONE || defaultOffset == null) {
+                throw new IllegalStateException("Zone offset required");
+            }
+            zoneId = defaultOffset;
+        } else {
+            if (offsetType == ZoneOffsetType.NONE) {
+                throw new IllegalStateException("Zone offset unexpected");
+            }
+            final char timezoneIndicator = date.charAt(offset);
+            if (timezoneIndicator == 'Z' && offset == length - 1) {
+                zoneId = ZoneOffset.UTC;
+            } else {
+                zoneId = ZoneOffset.of(date.substring(offset));
+            }
+        }
+        return zoneId;
     }
 
     private static int parseNanos(int value, int digits) {
@@ -219,29 +220,29 @@ public final class DatetimeProcessorUtil {
 
     public static OffsetDateTime parseIso8601AsOffsetDateTime(String date, char delimiter) {
         try {
-            final int length = date.length();
             final ParsingContext parsingContext = new ParsingContext();
             final LocalDateTime localDateTime = parseIso8601AsLocalDateTime(date, delimiter, parsingContext);
-            int offset = parsingContext.offset;
-
-            // extract timezone
-            final ZoneOffset zoneOffset;
-            if (offset == length) {
-                throw new IllegalStateException("Zone offset required");
-            } else {
-                final char timezoneIndicator = date.charAt(offset);
-                if (timezoneIndicator == 'Z' && offset == length - 1) {
-                    zoneOffset = ZoneOffset.UTC;
-                } else {
-                    zoneOffset = ZoneOffset.of(date.substring(offset));
-                }
-            }
+            final ZoneOffset zoneOffset = parseOffset(parsingContext.offset, date);
             return OffsetDateTime.of(localDateTime, zoneOffset);
-        } catch (IndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Failed to parse date " + date, e);
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Invalid date " + date, e);
+            throw new IllegalArgumentException("Failed to parse date " + date, e);
         }
+    }
+
+    private static ZoneOffset parseOffset(int offset, String date) {
+        final int length = date.length();
+        final ZoneOffset zoneOffset;
+        if (offset == length) {
+            throw new IllegalStateException("Zone offset required");
+        } else {
+            final char timezoneIndicator = date.charAt(offset);
+            if (timezoneIndicator == 'Z' && offset == length - 1) {
+                zoneOffset = ZoneOffset.UTC;
+            } else {
+                zoneOffset = ZoneOffset.of(date.substring(offset));
+            }
+        }
+        return zoneOffset;
     }
 
     static StringBuilder appendformattedSecondOffset(int offsetSeconds, StringBuilder sb) {
@@ -260,32 +261,35 @@ public final class DatetimeProcessorUtil {
      * @param number Non-negative number
      * @return number of digits
      */
-    static int sizeInDigits(int number) {
+    @SuppressWarnings("squid:S3776") // cognitive complexity
+    private static int sizeInDigits(int number) {
+        final int result;
         if (number < 100_000) {
             if (number < 100) {
-                return number < 10 ? 1 : 2;
+                result = number < 10 ? 1 : 2;
             } else {
                 if (number < 1000) {
-                    return 3;
+                    result = 3;
                 } else {
-                    return number < 10_000 ? 4 : 5;
+                    result = number < 10_000 ? 4 : 5;
                 }
             }
         } else {
             if (number < 10_000_000) {
-                return number < 1_000_000 ? 6 : 7;
+                result = number < 1_000_000 ? 6 : 7;
             } else {
                 if (number < 100_000_000) {
-                    return 8;
+                    result = 8;
                 } else {
-                    return number < 1_000_000_000 ? 9 : 10;
+                    result = number < 1_000_000_000 ? 9 : 10;
                 }
             }
         }
-
+        return result;
     }
 
-    static int powerOfTen(int pow) {
+    @SuppressWarnings("all") // ignore static analysis for Guava code
+    private static int powerOfTen(int pow) {
         switch (pow) {
             case 0: return 1;
             case 1: return 10;
@@ -308,7 +312,7 @@ public final class DatetimeProcessorUtil {
         }
     }
 
-    static StringBuilder adjustPossiblyNegative(StringBuilder sb, int num, int positions) {
+    private static StringBuilder adjustPossiblyNegative(StringBuilder sb, int num, int positions) {
         if (num >= 0) {
             return adjust(sb, num, positions);
         }
@@ -332,9 +336,6 @@ public final class DatetimeProcessorUtil {
     }
 
     static boolean isNumeric(final CharSequence cs) {
-        if (cs == null) {
-            return false;
-        }
         final int sz = cs.length();
         for (int i = 0; i < sz; i++) {
             if (!Character.isDigit(cs.charAt(i))) {
@@ -362,6 +363,7 @@ public final class DatetimeProcessorUtil {
      * @param str  the <code>String</code> to check
      * @return <code>true</code> if the string is a correctly formatted number
      */
+    @SuppressWarnings("all") // ignore static analysis for Apache Commons code
     static boolean isCreatable(final String str) {
         if (str == null || str.length() == 0) {
             return false;
