@@ -54,6 +54,11 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
     }
 
     @Override
+    public String print(ZonedDateTime zonedDateTime) {
+        return dateTimeFormatter.format(zonedDateTime);
+    }
+
+    @Override
     public DatetimeProcessor withLocale(Locale locale) {
         if (locale.equals(dateTimeFormatter.getLocale())) {
             return this;

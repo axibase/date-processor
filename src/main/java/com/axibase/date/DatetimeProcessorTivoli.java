@@ -45,7 +45,12 @@ class DatetimeProcessorTivoli implements DatetimeProcessor {
 
     @Override
     public String print(long timestamp, ZoneId zoneId) {
-        return DatetimeProcessorUtil.printTivoliDate(timestampToZonedDateTime(timestamp, zoneId));
+        return print(timestampToZonedDateTime(timestamp, zoneId));
+    }
+
+    @Override
+    public String print(ZonedDateTime zonedDateTime) {
+        return DatetimeProcessorUtil.printTivoliDate(zonedDateTime);
     }
 
     @Override

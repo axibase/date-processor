@@ -89,6 +89,11 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
     }
 
     @Override
+    public String print(ZonedDateTime zonedDateTime) {
+        return formatter.format(zonedDateTime);
+    }
+
+    @Override
     public boolean canParse(String date) {
         return parseMonth(date) != null && !DatetimeProcessorUtil.isNumeric(date);
     }

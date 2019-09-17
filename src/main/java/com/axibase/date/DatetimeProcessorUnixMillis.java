@@ -44,6 +44,11 @@ class DatetimeProcessorUnixMillis implements DatetimeProcessor {
     }
 
     @Override
+    public String print(ZonedDateTime zonedDateTime) {
+        return "" + zonedDateTime.toInstant().toEpochMilli();
+    }
+
+    @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
     }
