@@ -48,6 +48,11 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
     }
 
     @Override
+    public String print(ZonedDateTime zonedDateTime) {
+        return DatetimeProcessorUtil.printIso8601(zonedDateTime.toOffsetDateTime(), ' ', offsetType, fractionsOfSecond);
+    }
+
+    @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
     }

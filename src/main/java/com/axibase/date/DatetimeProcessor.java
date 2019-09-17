@@ -17,6 +17,8 @@ public interface DatetimeProcessor extends DatetimePatternTester {
 
     String print(long timestamp, ZoneId zoneId);
 
+    String print(ZonedDateTime zonedDateTime);
+
     DatetimeProcessor withLocale(Locale locale);
 
     DatetimeProcessor withDefaultZone(ZoneId zoneId);

@@ -21,7 +21,6 @@ public final class DatetimeProcessorUtil {
      * @return String representation of the timestamp
      */
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond) {
-        final StringBuilder sb = new StringBuilder(ISO_LENGTH);
         final OffsetDateTime dateTime;
         if (ZoneOffset.UTC.equals(zone)) {
             final long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
@@ -30,6 +29,17 @@ public final class DatetimeProcessorUtil {
         } else {
             dateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone);
         }
+        return printIso8601(dateTime, delimiter, offsetType, fractionsOfSecond);
+    }
+
+    /**
+     * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]
+     * @param dateTime timestamp as OffsetDatTime
+     * @param offsetType Zone offset format: ISO (+HH:mm), RFC (+HHmm), or NONE
+     * @return String representation of the timestamp
+     */
+    static String printIso8601(OffsetDateTime dateTime, char delimiter, ZoneOffsetType offsetType, int fractionsOfSecond) {
+        final StringBuilder sb = new StringBuilder(ISO_LENGTH);
         adjustPossiblyNegative(sb, dateTime.getYear(), 4).append('-');
         adjust(sb, dateTime.getMonthValue(), 2).append('-');
         adjust(sb, dateTime.getDayOfMonth(), 2).append(delimiter);
