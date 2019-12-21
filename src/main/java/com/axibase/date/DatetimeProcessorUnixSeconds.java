@@ -56,7 +56,7 @@ class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
 
     @Override
     public String print(ZonedDateTime zonedDateTime) {
-        return "" + zonedDateTime.toInstant().getEpochSecond();
+        return print(zonedDateTime.toInstant().toEpochMilli());
     }
 
     @Override

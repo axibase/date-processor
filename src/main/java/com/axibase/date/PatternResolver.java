@@ -75,7 +75,7 @@ public class PatternResolver {
     }
 
     /**
-     * Replace documented FDF symbols to their JSR-310 analogs. The convertions are performed:
+     * Replace documented FDF symbols to their JSR-310 analogs. The conversions are performed:
      * unquoted T -> quoted T
      * u -> ccccc (day of week starting from Monday)
      * ZZ -> XX (zone offset in RFC format: +HHmm, Z for UTC)

@@ -8,7 +8,7 @@ public final class DatetimeProcessorUtil {
     static final int MILLISECONDS_IN_SECOND = 1000;
     static final int UNIX_EPOCH_YEAR = 1970;
     static final int MAX_YEAR = 2200;
-    private static final int ISO_LENGTH = "1970-01-01T00:00:00.000000000+00:00".length();
+    private static final int ISO_LENGTH = "1970-01-01T00:00:00.000000000+00:00:00".length();
     private static final int TIVOLI_LENGTH = "1yyMMddHHmmssSSS".length();
     private static final int TIVOLI_EPOCH_YEAR = 1900;
 
@@ -21,24 +21,29 @@ public final class DatetimeProcessorUtil {
      * @return String representation of the timestamp
      */
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond) {
-        final OffsetDateTime dateTime;
-        if (ZoneOffset.UTC.equals(zone)) {
+        final LocalDateTime localDateTime;
+        final ZoneOffset offset;
+        if (zone instanceof ZoneOffset) {
             final long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
             final int nanos = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND) * NANOS_IN_MILLIS;
-            dateTime =  OffsetDateTime.of(LocalDateTime.ofEpochSecond(secs, nanos, ZoneOffset.UTC), ZoneOffset.UTC);
+            localDateTime = LocalDateTime.ofEpochSecond(secs, nanos, ZoneOffset.UTC);
+            offset = (ZoneOffset) zone;
         } else {
-            dateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone);
+            final OffsetDateTime dateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone);
+            localDateTime = dateTime.toLocalDateTime();
+            offset = dateTime.getOffset();
         }
-        return printIso8601(dateTime, delimiter, offsetType, fractionsOfSecond);
+        return printIso8601(localDateTime, offset, offsetType, delimiter, fractionsOfSecond);
     }
 
     /**
      * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]
-     * @param dateTime timestamp as OffsetDatTime
+     * @param dateTime timestamp as LocalDateTime
+     * @param offset time zone offset
      * @param offsetType Zone offset format: ISO (+HH:mm), RFC (+HHmm), or NONE
      * @return String representation of the timestamp
      */
-    static String printIso8601(OffsetDateTime dateTime, char delimiter, ZoneOffsetType offsetType, int fractionsOfSecond) {
+    static String printIso8601(LocalDateTime dateTime, ZoneOffset offset, ZoneOffsetType offsetType, char delimiter, int fractionsOfSecond) {
         final StringBuilder sb = new StringBuilder(ISO_LENGTH);
         adjustPossiblyNegative(sb, dateTime.getYear(), 4).append('-');
         adjust(sb, dateTime.getMonthValue(), 2).append('-');
@@ -50,7 +55,7 @@ public final class DatetimeProcessorUtil {
             sb.append('.');
             adjust(sb, dateTime.getNano() / powerOfTen(9 - fractionsOfSecond), fractionsOfSecond);
         }
-        return offsetType.appendOffset(sb, dateTime.getOffset()).toString();
+        return offsetType.appendOffset(sb, offset).toString();
     }
 
     static LocalDateTime parseTivoliDate(String date) {

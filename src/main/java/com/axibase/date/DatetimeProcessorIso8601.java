@@ -51,7 +51,7 @@ class DatetimeProcessorIso8601 implements DatetimeProcessor {
 
     @Override
     public String print(ZonedDateTime zonedDateTime) {
-        return DatetimeProcessorUtil.printIso8601(zonedDateTime.toOffsetDateTime(), 'T', zoneOffsetType, fractionsOfSecond);
+        return DatetimeProcessorUtil.printIso8601(zonedDateTime.toLocalDateTime(), zonedDateTime.getOffset(), zoneOffsetType, 'T', fractionsOfSecond);
     }
 
     @Override

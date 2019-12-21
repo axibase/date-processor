@@ -49,7 +49,7 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
 
     @Override
     public String print(ZonedDateTime zonedDateTime) {
-        return DatetimeProcessorUtil.printIso8601(zonedDateTime.toOffsetDateTime(), ' ', offsetType, fractionsOfSecond);
+        return DatetimeProcessorUtil.printIso8601(zonedDateTime.toLocalDateTime(), zonedDateTime.getOffset(), offsetType, ' ', fractionsOfSecond);
     }
 
     @Override
