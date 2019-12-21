@@ -8,6 +8,10 @@ public final class DatetimeProcessorUtil {
     static final int MILLISECONDS_IN_SECOND = 1000;
     static final int UNIX_EPOCH_YEAR = 1970;
     static final int MAX_YEAR = 2200;
+    static final long MAX_TIME_MILLIS = LocalDate.of(MAX_YEAR, 1, 1)
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli();
     private static final int ISO_LENGTH = "1970-01-01T00:00:00.000000000+00:00:00".length();
     private static final int TIVOLI_LENGTH = "1yyMMddHHmmssSSS".length();
     private static final int TIVOLI_EPOCH_YEAR = 1900;
@@ -26,8 +30,8 @@ public final class DatetimeProcessorUtil {
         if (zone instanceof ZoneOffset) {
             final long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
             final int nanos = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND) * NANOS_IN_MILLIS;
-            localDateTime = LocalDateTime.ofEpochSecond(secs, nanos, ZoneOffset.UTC);
             offset = (ZoneOffset) zone;
+            localDateTime = LocalDateTime.ofEpochSecond(secs, nanos, offset);
         } else {
             final OffsetDateTime dateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone);
             localDateTime = dateTime.toLocalDateTime();

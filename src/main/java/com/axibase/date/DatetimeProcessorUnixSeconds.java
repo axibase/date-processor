@@ -2,9 +2,11 @@ package com.axibase.date;
 
 import java.math.BigDecimal;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 
+import static com.axibase.date.DatetimeProcessorUtil.MAX_TIME_MILLIS;
 import static com.axibase.date.DatetimeProcessorUtil.MILLISECONDS_IN_SECOND;
 
 class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
@@ -71,6 +73,10 @@ class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
 
     @Override
     public boolean canParse(String date) {
-        return DatetimeProcessorUtil.isCreatable(date);
+        if (DatetimeProcessorUtil.isCreatable(date)) {
+            final long millis = parseMillis(date, ZoneOffset.UTC);
+            return millis >= 0 && millis < MAX_TIME_MILLIS;
+        }
+        return false;
     }
 }
