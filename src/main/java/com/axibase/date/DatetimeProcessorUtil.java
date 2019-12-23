@@ -7,6 +7,7 @@ public final class DatetimeProcessorUtil {
     static final int NANOS_IN_MILLIS = 1_000_000;
     static final int MILLISECONDS_IN_SECOND = 1000;
     static final int UNIX_EPOCH_YEAR = 1970;
+    static final int MIN_YEAR_20_CENTURY = 1900;
     static final int MAX_YEAR = 2200;
     static final long MAX_TIME_MILLIS = LocalDate.of(MAX_YEAR, 1, 1)
         .atStartOfDay(ZoneOffset.UTC)
