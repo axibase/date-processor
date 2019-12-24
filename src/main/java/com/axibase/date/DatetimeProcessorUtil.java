@@ -152,8 +152,7 @@ public final class DatetimeProcessorUtil {
             if (offsetType == ZoneOffsetType.NONE) {
                 throw new IllegalStateException("Zone offset unexpected");
             }
-            final char timezoneIndicator = date.charAt(offset);
-            if (timezoneIndicator == 'Z' && offset == length - 1) {
+            if (offset == length - 1 && date.charAt(offset) == 'Z') {
                 zoneId = ZoneOffset.UTC;
             } else {
                 zoneId = ZoneOffset.of(date.substring(offset));
@@ -255,8 +254,7 @@ public final class DatetimeProcessorUtil {
         if (offset == length) {
             throw new IllegalStateException("Zone offset required");
         } else {
-            final char timezoneIndicator = date.charAt(offset);
-            if (timezoneIndicator == 'Z' && offset == length - 1) {
+            if (offset == length - 1 && date.charAt(offset) == 'Z') {
                 zoneOffset = ZoneOffset.UTC;
             } else {
                 zoneOffset = ZoneOffset.of(date.substring(offset));
