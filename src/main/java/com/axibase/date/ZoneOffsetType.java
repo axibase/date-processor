@@ -2,7 +2,7 @@ package com.axibase.date;
 
 import java.time.ZoneOffset;
 
-import static com.axibase.date.DatetimeProcessorUtil.appendformattedSecondOffset;
+import static com.axibase.date.DatetimeProcessorUtil.appendFormattedSecondOffset;
 
 enum ZoneOffsetType {
     NONE,
@@ -16,7 +16,7 @@ enum ZoneOffsetType {
     RFC822 {
         @Override
         StringBuilder appendOffset(StringBuilder sb, ZoneOffset offset) {
-            return appendformattedSecondOffset(offset.getTotalSeconds(), sb);
+            return appendFormattedSecondOffset(offset.getTotalSeconds(), sb);
         }
     };
 

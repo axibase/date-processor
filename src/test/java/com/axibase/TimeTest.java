@@ -1,14 +1,14 @@
 package com.axibase;
 
-import com.axibase.date.DatetimeProcessorUtil;
-import com.axibase.date.PatternResolver;
-import org.junit.Test;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+
+import com.axibase.date.DatetimeProcessorUtil;
+import com.axibase.date.PatternResolver;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -72,6 +72,7 @@ public class TimeTest {
         assertThat(parseISO8601("2017-09-12T07:47:59.999Z"), is(time));
         assertThat(parseISO8601("2017-09-12T07:47:59Z"), is(time / 1000 * 1000));
         assertThat(parseISO8601("2017-09-12T07:47:59.9999Z"), is(time));
+        assertThat(parseISO8601("2017-09-12T07:47Z"), is(Instant.parse("2017-09-12T07:47:00.000Z").toEpochMilli()));
     }
 
     @Test(expected = IllegalArgumentException.class)

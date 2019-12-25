@@ -212,9 +212,15 @@ public final class DatetimeProcessorUtil {
         checkOffset(date, offset, ':');
 
         int minutes = parseInt(date, offset += 1, offset += 2, length);
-        checkOffset(date, offset, ':');
 
-        int seconds = parseInt(date, offset += 1, offset += 2, length);
+        // seconds can be optional
+        final int seconds;
+        if (date.charAt(offset) == ':') {
+            seconds = parseInt(date, offset += 1, offset += 2, length);
+        } else {
+            seconds = 0;
+        }
+
         // milliseconds can be optional in the format
         final int nanos;
         if (offset < length && date.charAt(offset) == '.') {
@@ -263,7 +269,7 @@ public final class DatetimeProcessorUtil {
         return zoneOffset;
     }
 
-    static StringBuilder appendformattedSecondOffset(int offsetSeconds, StringBuilder sb) {
+    static StringBuilder appendFormattedSecondOffset(int offsetSeconds, StringBuilder sb) {
         if (offsetSeconds == 0) {
             return sb.append('Z');
         }
