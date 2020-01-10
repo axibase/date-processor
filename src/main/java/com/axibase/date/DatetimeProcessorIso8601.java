@@ -55,6 +55,11 @@ class DatetimeProcessorIso8601 implements DatetimeProcessor {
     }
 
     @Override
+    public void appendTo(long timestamp, StringBuilder accumulator) {
+        DatetimeProcessorUtil.printIso8601(timestamp, 'T', zoneId, zoneOffsetType, fractionsOfSecond, accumulator);
+    }
+
+    @Override
     public DatetimeProcessor withLocale(Locale locale) {
         return this;
     }

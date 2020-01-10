@@ -1,6 +1,12 @@
 package com.axibase.date;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 @SuppressWarnings("squid:S109") // magic constant
 public final class DatetimeProcessorUtil {
@@ -26,6 +32,10 @@ public final class DatetimeProcessorUtil {
      * @return String representation of the timestamp
      */
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond) {
+        return printIso8601(timestamp, delimiter, zone, offsetType, fractionsOfSecond, new StringBuilder(ISO_LENGTH));
+    }
+
+    static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond, StringBuilder sb) {
         final LocalDateTime localDateTime;
         final ZoneOffset offset;
         if (zone instanceof ZoneOffset) {
@@ -38,7 +48,7 @@ public final class DatetimeProcessorUtil {
             localDateTime = dateTime.toLocalDateTime();
             offset = dateTime.getOffset();
         }
-        return printIso8601(localDateTime, offset, offsetType, delimiter, fractionsOfSecond);
+        return printIso8601(localDateTime, offset, offsetType, delimiter, fractionsOfSecond, sb);
     }
 
     /**
@@ -49,7 +59,10 @@ public final class DatetimeProcessorUtil {
      * @return String representation of the timestamp
      */
     static String printIso8601(LocalDateTime dateTime, ZoneOffset offset, ZoneOffsetType offsetType, char delimiter, int fractionsOfSecond) {
-        final StringBuilder sb = new StringBuilder(ISO_LENGTH);
+        return printIso8601(dateTime, offset, offsetType, delimiter, fractionsOfSecond, new StringBuilder(ISO_LENGTH));
+    }
+
+    static String printIso8601(LocalDateTime dateTime, ZoneOffset offset, ZoneOffsetType offsetType, char delimiter, int fractionsOfSecond, StringBuilder sb) {
         adjustPossiblyNegative(sb, dateTime.getYear(), 4).append('-');
         adjust(sb, dateTime.getMonthValue(), 2).append('-');
         adjust(sb, dateTime.getDayOfMonth(), 2).append(delimiter);
@@ -96,7 +109,10 @@ public final class DatetimeProcessorUtil {
     }
 
     static String printTivoliDate(ZonedDateTime dateTime) {
-        final StringBuilder sb = new StringBuilder(TIVOLI_LENGTH);
+        return printTivoliDate(dateTime, new StringBuilder(TIVOLI_LENGTH));
+    }
+
+    static String printTivoliDate(ZonedDateTime dateTime, StringBuilder sb) {
         final int century = (dateTime.getYear() - TIVOLI_EPOCH_YEAR) / 100;
         final int year = dateTime.getYear() % 100;
         adjustPossiblyNegative(sb, century, 1);
@@ -128,8 +144,8 @@ public final class DatetimeProcessorUtil {
         }
     }
 
-    public static ZonedDateTime parseIso8601AsZonedDateTime(String date, char delimiter,
-                                                            ZoneId defaultOffset, ZoneOffsetType offsetType) {
+    static ZonedDateTime parseIso8601AsZonedDateTime(String date, char delimiter,
+                                                     ZoneId defaultOffset, ZoneOffsetType offsetType) {
         try {
             final ParsingContext context = new ParsingContext();
             final LocalDateTime localDateTime = parseIso8601AsLocalDateTime(date, delimiter, context);
@@ -138,6 +154,10 @@ public final class DatetimeProcessorUtil {
         } catch (RuntimeException e) {
             throw new IllegalArgumentException("Failed to parse date " + date, e);
         }
+    }
+
+    public static ZonedDateTime parseIso8601AsZonedDateTime(String date) {
+        return parseIso8601AsZonedDateTime(date, 'T', null, ZoneOffsetType.ISO8601);
     }
 
     private static ZoneId extractOffset(String date, int offset, ZoneOffsetType offsetType, ZoneId defaultOffset) {
@@ -241,6 +261,10 @@ public final class DatetimeProcessorUtil {
         }
         context.offset = offset;
         return LocalDateTime.of(year, month, day, hour, minutes, seconds, nanos);
+    }
+
+    public static long parseIsoMillis(String date, char delimiter) {
+        return parseIso8601AsOffsetDateTime(date, delimiter).toInstant().toEpochMilli();
     }
 
     public static OffsetDateTime parseIso8601AsOffsetDateTime(String date, char delimiter) {

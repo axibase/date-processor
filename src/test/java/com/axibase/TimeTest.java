@@ -122,10 +122,10 @@ public class TimeTest {
 
     @Test
     public void testPrintUnixSeconds() {
-        assertThat(PatternResolver.createNewFormatter("seconds").print(1516020195000L), is("1516020195"));
-        assertThat(PatternResolver.createNewFormatter("seconds").print(1516020195345L), is("1516020195.345"));
-        assertThat(PatternResolver.createNewFormatter("seconds").print(1516020195045L), is("1516020195.045"));
-        assertThat(PatternResolver.createNewFormatter("seconds").print(1516020195005L), is("1516020195.005"));
+        TestUtil.testPrint("seconds", 1516020195000L, "1516020195");
+        TestUtil.testPrint("seconds", 1516020195345L, "1516020195.345");
+        TestUtil.testPrint("seconds", 1516020195045L, "1516020195.045");
+        TestUtil.testPrint("seconds", 1516020195005L, "1516020195.005");
     }
 
     private long parseMillis(String date, String pattern) {
@@ -133,6 +133,6 @@ public class TimeTest {
     }
     
     private long parseISO8601(String date) {
-        return DatetimeProcessorUtil.parseIso8601AsOffsetDateTime(date, 'T').toInstant().toEpochMilli();
+        return DatetimeProcessorUtil.parseIsoMillis(date, 'T');
     }
 }

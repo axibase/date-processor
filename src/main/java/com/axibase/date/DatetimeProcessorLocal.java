@@ -48,6 +48,11 @@ class DatetimeProcessorLocal implements DatetimeProcessor {
     }
 
     @Override
+    public void appendTo(long timestamp, StringBuilder accumulator) {
+        DatetimeProcessorUtil.printIso8601(timestamp, ' ', zoneId, offsetType, fractionsOfSecond, accumulator);
+    }
+
+    @Override
     public String print(ZonedDateTime zonedDateTime) {
         return DatetimeProcessorUtil.printIso8601(zonedDateTime.toLocalDateTime(), zonedDateTime.getOffset(), offsetType, ' ', fractionsOfSecond);
     }
