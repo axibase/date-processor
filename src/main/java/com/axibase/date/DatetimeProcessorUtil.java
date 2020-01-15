@@ -26,7 +26,16 @@ public final class DatetimeProcessorUtil {
     private DatetimeProcessorUtil() {}
 
     /**
-     * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]
+     * Optimized print of a timestamp in ISO8601 format: yyyy-MM-ddTHH:mm:ss[.SSS]Z
+     * @param timestamp milliseconds since epoch
+     * @return String representation of the timestamp
+     */
+    public static String printIso8601(long timestamp, boolean withMillis) {
+        return printIso8601(timestamp, 'T', ZoneOffset.UTC, ZoneOffsetType.ISO8601, withMillis ? 3 : 0);
+    }
+
+    /**
+     * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]Z
      * @param timestamp milliseconds since epoch
      * @param offsetType Zone offset format: ISO (+HH:mm), RFC (+HHmm), or NONE
      * @return String representation of the timestamp
