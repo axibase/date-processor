@@ -41,7 +41,7 @@ public final class DatetimeProcessorUtil {
      * @return String representation of the timestamp
      */
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond) {
-        return printIso8601(timestamp, delimiter, zone, offsetType, fractionsOfSecond, new StringBuilder(ISO_LENGTH));
+        return printIso8601(timestamp, delimiter, zone, offsetType, fractionsOfSecond, PrinterBufferFactoryManager.getInstance().allocate(ISO_LENGTH));
     }
 
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond, StringBuilder sb) {
