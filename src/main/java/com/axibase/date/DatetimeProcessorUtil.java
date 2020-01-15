@@ -35,6 +35,15 @@ public final class DatetimeProcessorUtil {
     }
 
     /**
+     * Optimized print of a timestamp in format: yyyy-MM-dd HH:mm:ss[.SSS]
+     * @param timestamp milliseconds since epoch
+     * @return String representation of the timestamp
+     */
+    public static String printLocalTime(long timestamp, boolean withMillis, ZoneId zoneId) {
+        return printIso8601(timestamp, ' ', zoneId, ZoneOffsetType.NONE, withMillis ? 3 : 0);
+    }
+
+    /**
      * Optimized print of a timestamp in ISO8601 or local format: yyyy-MM-dd[T| ]HH:mm:ss[.SSS]Z
      * @param timestamp milliseconds since epoch
      * @param offsetType Zone offset format: ISO (+HH:mm), RFC (+HHmm), or NONE
