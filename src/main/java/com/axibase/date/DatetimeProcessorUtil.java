@@ -7,6 +7,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.zone.ZoneRules;
 
 @SuppressWarnings("squid:S109") // magic constant
 public final class DatetimeProcessorUtil {
@@ -19,6 +20,7 @@ public final class DatetimeProcessorUtil {
         .atStartOfDay(ZoneOffset.UTC)
         .toInstant()
         .toEpochMilli();
+    private static final Instant MOCK = Instant.now();
     private static final int ISO_LENGTH = "1970-01-01T00:00:00.000000000+00:00:00".length();
     private static final int TIVOLI_LENGTH = "1yyMMddHHmmssSSS".length();
     private static final int TIVOLI_EPOCH_YEAR = 1900;
@@ -54,18 +56,27 @@ public final class DatetimeProcessorUtil {
     }
 
     static String printIso8601(long timestamp, char delimiter, ZoneId zone, ZoneOffsetType offsetType, int fractionsOfSecond, StringBuilder sb) {
-        final LocalDateTime localDateTime;
         final ZoneOffset offset;
+        final long secs;
+        final int nanos;
         if (zone instanceof ZoneOffset) {
-            final long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
-            final int nanos = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND) * NANOS_IN_MILLIS;
+            secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
+            nanos = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND) * NANOS_IN_MILLIS;
             offset = (ZoneOffset) zone;
-            localDateTime = LocalDateTime.ofEpochSecond(secs, nanos, offset);
         } else {
-            final OffsetDateTime dateTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zone);
-            localDateTime = dateTime.toLocalDateTime();
-            offset = dateTime.getOffset();
+            final ZoneRules rules = zone.getRules();
+            if (rules.isFixedOffset()) {
+                secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
+                nanos = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND) * NANOS_IN_MILLIS;
+                offset = rules.getOffset(MOCK);
+            } else {
+                final Instant instant = Instant.ofEpochMilli(timestamp);
+                secs = instant.getEpochSecond();
+                nanos = instant.getNano();
+                offset = rules.getOffset(instant);
+            }
         }
+        final MutableDateTime localDateTime = new MutableDateTime().ofEpochSecond(secs, nanos, offset);
         return printIso8601(localDateTime, offset, offsetType, delimiter, fractionsOfSecond, sb);
     }
 
