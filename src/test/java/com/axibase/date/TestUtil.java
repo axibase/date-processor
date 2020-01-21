@@ -1,6 +1,4 @@
-package com.axibase;
-
-import com.axibase.date.PatternResolver;
+package com.axibase.date;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

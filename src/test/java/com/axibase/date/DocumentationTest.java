@@ -1,10 +1,8 @@
-package com.axibase;
-
-import com.axibase.date.DatetimeProcessor;
-import com.axibase.date.PatternResolver;
-import org.junit.Test;
+package com.axibase.date;
 
 import java.time.ZoneId;
+
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

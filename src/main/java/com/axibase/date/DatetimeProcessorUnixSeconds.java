@@ -47,7 +47,7 @@ class DatetimeProcessorUnixSeconds implements DatetimeProcessor {
             return Long.toString(seconds);
         }
         StringBuilder sb = new StringBuilder().append(seconds).append('.');
-        DatetimeProcessorUtil.adjust(sb, (int)fractions, 3);
+        DatetimeProcessorUtil.appendNumberWithFixedPositions(sb, (int)fractions, 3);
         return sb.toString();
     }
 

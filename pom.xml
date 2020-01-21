@@ -4,7 +4,7 @@
   <groupId>com.axibase</groupId>
   <artifactId>date-processor</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <name>Axibase Date Processor</name>
   <description>Library for manipulating timestamps using Axibase datetime syntax</description>
   <url>https://axibase.com/docs/atsd/shared/time-pattern.html#date-and-time-patterns</url>
@@ -44,6 +44,19 @@
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
       <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-core</artifactId>
+      <version>1.22</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-generator-annprocess</artifactId>
+      <version>1.22</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

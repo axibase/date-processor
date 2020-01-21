@@ -82,14 +82,28 @@ public final class DatetimeProcessorUtil {
 
     static String printIso8601(LocalDateTime dateTime, ZoneOffset offset, ZoneOffsetType offsetType, char delimiter, int fractionsOfSecond, StringBuilder sb) {
         adjustPossiblyNegative(sb, dateTime.getYear(), 4).append('-');
-        adjust(sb, dateTime.getMonthValue(), 2).append('-');
-        adjust(sb, dateTime.getDayOfMonth(), 2).append(delimiter);
-        adjust(sb, dateTime.getHour(), 2).append(':');
-        adjust(sb, dateTime.getMinute(), 2).append(':');
-        adjust(sb, dateTime.getSecond(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getMonthValue(), 2).append('-');
+        appendNumberWithFixedPositions(sb, dateTime.getDayOfMonth(), 2).append(delimiter);
+        appendNumberWithFixedPositions(sb, dateTime.getHour(), 2).append(':');
+        appendNumberWithFixedPositions(sb, dateTime.getMinute(), 2).append(':');
+        appendNumberWithFixedPositions(sb, dateTime.getSecond(), 2);
         if (fractionsOfSecond > 0) {
             sb.append('.');
-            adjust(sb, dateTime.getNano() / powerOfTen(9 - fractionsOfSecond), fractionsOfSecond);
+            appendNumberWithFixedPositions(sb, dateTime.getNano() / powerOfTen(9 - fractionsOfSecond), fractionsOfSecond);
+        }
+        return offsetType.appendOffset(sb, offset).toString();
+    }
+
+    static String printIso8601(MutableDateTime dateTime, ZoneOffset offset, ZoneOffsetType offsetType, char delimiter, int fractionsOfSecond, StringBuilder sb) {
+        adjustPossiblyNegative(sb, dateTime.getYear(), 4).append('-');
+        appendNumberWithFixedPositions(sb, dateTime.getMonthValue(), 2).append('-');
+        appendNumberWithFixedPositions(sb, dateTime.getDayOfMonth(), 2).append(delimiter);
+        appendNumberWithFixedPositions(sb, dateTime.getHour(), 2).append(':');
+        appendNumberWithFixedPositions(sb, dateTime.getMinute(), 2).append(':');
+        appendNumberWithFixedPositions(sb, dateTime.getSecond(), 2);
+        if (fractionsOfSecond > 0) {
+            sb.append('.');
+            appendNumberWithFixedPositions(sb, dateTime.getNano() / powerOfTen(9 - fractionsOfSecond), fractionsOfSecond);
         }
         return offsetType.appendOffset(sb, offset).toString();
     }
@@ -134,13 +148,13 @@ public final class DatetimeProcessorUtil {
         final int century = (dateTime.getYear() - TIVOLI_EPOCH_YEAR) / 100;
         final int year = dateTime.getYear() % 100;
         adjustPossiblyNegative(sb, century, 1);
-        adjust(sb, year, 2);
-        adjust(sb, dateTime.getMonthValue(), 2);
-        adjust(sb, dateTime.getDayOfMonth(), 2);
-        adjust(sb, dateTime.getHour(), 2);
-        adjust(sb, dateTime.getMinute(), 2);
-        adjust(sb, dateTime.getSecond(), 2);
-        adjust(sb, dateTime.getNano() / NANOS_IN_MILLIS, 3);
+        appendNumberWithFixedPositions(sb, year, 2);
+        appendNumberWithFixedPositions(sb, dateTime.getMonthValue(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getDayOfMonth(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getHour(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getMinute(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getSecond(), 2);
+        appendNumberWithFixedPositions(sb, dateTime.getNano() / NANOS_IN_MILLIS, 3);
         return sb.toString();
     }
 
@@ -317,8 +331,8 @@ public final class DatetimeProcessorUtil {
         }
         sb.append(offsetSeconds < 0 ? '-' : '+');
         final int absSeconds = Math.abs(offsetSeconds);
-        adjust(sb, absSeconds / 3600, 2);
-        adjust(sb, (absSeconds / 60) % 60, 2);
+        appendNumberWithFixedPositions(sb, absSeconds / 3600, 2);
+        appendNumberWithFixedPositions(sb, (absSeconds / 60) % 60, 2);
         return sb;
     }
 
@@ -380,13 +394,13 @@ public final class DatetimeProcessorUtil {
 
     private static StringBuilder adjustPossiblyNegative(StringBuilder sb, int num, int positions) {
         if (num >= 0) {
-            return adjust(sb, num, positions);
+            return appendNumberWithFixedPositions(sb, num, positions);
         }
-        return adjust(sb.append('-'), -num, positions - 1);
+        return appendNumberWithFixedPositions(sb.append('-'), -num, positions - 1);
 
     }
 
-    static StringBuilder adjust(StringBuilder sb, int num, int positions) {
+    public static StringBuilder appendNumberWithFixedPositions(StringBuilder sb, int num, int positions) {
         for (int i = positions - sizeInDigits(num); i > 0; --i) {
             sb.append('0');
         }
@@ -394,11 +408,29 @@ public final class DatetimeProcessorUtil {
     }
 
     public static ZonedDateTime timestampToZonedDateTime(long timestamp, ZoneId zoneId) {
-        return Instant.ofEpochMilli(timestamp).atZone(zoneId);
+        final ZonedDateTime result;
+        if (zoneId instanceof ZoneOffset) {
+            long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
+            int milliOfSecond = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND);
+            LocalDateTime ldt = LocalDateTime.ofEpochSecond(secs, milliOfSecond * NANOS_IN_MILLIS, (ZoneOffset) zoneId);
+            result = ZonedDateTime.of(ldt, zoneId);
+        } else {
+            final ZoneRules rules = zoneId.getRules();
+            if (rules.isFixedOffset()) {
+                long secs = Math.floorDiv(timestamp, MILLISECONDS_IN_SECOND);
+                int milliOfSecond = (int)Math.floorMod(timestamp, MILLISECONDS_IN_SECOND);
+                ZoneOffset offset = rules.getOffset(MOCK);
+                LocalDateTime ldt = LocalDateTime.ofEpochSecond(secs, milliOfSecond * NANOS_IN_MILLIS, offset);
+                result = ZonedDateTime.ofInstant(ldt, offset, zoneId);
+            } else {
+                result = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), zoneId);
+            }
+        }
+        return result;
     }
 
-    public static long toMillis(ZonedDateTime zonedDateTime) {
-        return zonedDateTime.toInstant().toEpochMilli();
+    public static long toMillis(ZonedDateTime dateTime) {
+        return Math.addExact(dateTime.toEpochSecond() * MILLISECONDS_IN_SECOND, Math.floorDiv(dateTime.getNano(), NANOS_IN_MILLIS));
     }
 
     static boolean isNumeric(final CharSequence cs) {

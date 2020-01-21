@@ -1,12 +1,10 @@
-package com.axibase;
+package com.axibase.date;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Locale;
 
-import com.axibase.date.NamedPatterns;
-import com.axibase.date.PatternResolver;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;

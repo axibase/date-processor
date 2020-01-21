@@ -1,14 +1,12 @@
-package com.axibase;
-
-import com.axibase.date.DatetimeProcessor;
-import com.axibase.date.PatternResolver;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+package com.axibase.date;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;

@@ -1,4 +1,4 @@
-package com.axibase;
+package com.axibase.date;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -6,8 +6,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 
-import com.axibase.date.DatetimeProcessorUtil;
-import com.axibase.date.PatternResolver;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
