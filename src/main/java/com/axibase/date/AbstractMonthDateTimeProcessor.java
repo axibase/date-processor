@@ -39,10 +39,17 @@ abstract class AbstractMonthDateTimeProcessor implements DatetimeProcessor {
     private static Map<String, Month> prepareMap(DateTimeFormatter formatter, DateTimeFormatter standaloneFormatter) {
         final Map<String, Month> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (Month month : Month.values()) {
-            result.put(formatter.format(month), month);
-            result.put(standaloneFormatter.format(month), month);
+            addFormattedValue(formatter.format(month), month, result);
+            addFormattedValue(standaloneFormatter.format(month), month, result);
         }
         return result;
+    }
+
+    private static void addFormattedValue(String value, Month month, Map<String, Month> map) {
+        map.put(value, month);
+        if (value.endsWith(".")) {
+            map.put(value.substring(0, value.length() - 1), month);
+        }
     }
 
     private Month parseMonth(String datetime) {
