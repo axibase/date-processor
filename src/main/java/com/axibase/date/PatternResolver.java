@@ -21,6 +21,10 @@ public class PatternResolver {
     }
 
     public static DatetimeProcessor createNewFormatter(String pattern, ZoneId zoneId) {
+        return createNewFormatter(pattern, zoneId, OnMissingDateComponentAction.SET_ZERO);
+    }
+
+    public static DatetimeProcessor createNewFormatter(String pattern, ZoneId zoneId, OnMissingDateComponentAction onMissingDateComponent) {
         final DatetimeProcessor result;
         if (NamedPatterns.SECONDS.equalsIgnoreCase(pattern)) {
            result = new DatetimeProcessorUnixSeconds(zoneId);
@@ -41,12 +45,12 @@ public class PatternResolver {
         } else if ("MMMM".equals(pattern)) {
             result = new FullMonthDatetimeProcessor(Locale.getDefault(Locale.Category.FORMAT), zoneId);
         } else {
-            result = createFromDynamicPattern(pattern, zoneId);
+            result = createFromDynamicPattern(pattern, zoneId, onMissingDateComponent);
         }
         return result;
     }
 
-    private static DatetimeProcessor createFromDynamicPattern(String pattern, ZoneId zoneId) {
+    private static DatetimeProcessor createFromDynamicPattern(String pattern, ZoneId zoneId, OnMissingDateComponentAction onMissingDateComponentAction) {
         final Matcher matcher = OPTIMIZED_PATTERN.matcher(pattern);
         if (matcher.matches()) {
             final int fractions = stringLength(matcher.group(2)) - 1;
@@ -67,7 +71,7 @@ public class PatternResolver {
                 .appendPattern(preprocessedPattern)
                 .toFormatter(Locale.US)
                 .withResolverStyle(ResolverStyle.STRICT);
-        return new DatetimeProcessorCustom(dateTimeFormatter, zoneId);
+        return new DatetimeProcessorCustom(dateTimeFormatter, zoneId, onMissingDateComponentAction);
     }
 
     private static int stringLength(String value) {

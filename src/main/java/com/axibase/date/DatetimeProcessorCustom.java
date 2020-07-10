@@ -17,10 +17,12 @@ import static com.axibase.date.DatetimeProcessorUtil.toMillis;
 class DatetimeProcessorCustom implements DatetimeProcessor {
     private final DateTimeFormatter dateTimeFormatter;
     private final ZoneId zoneId;
+    private final OnMissingDateComponentAction onMissingDateComponentAction;
 
-    DatetimeProcessorCustom(DateTimeFormatter dateTimeFormatter, ZoneId zoneId) {
+    DatetimeProcessorCustom(DateTimeFormatter dateTimeFormatter, ZoneId zoneId, OnMissingDateComponentAction onMissingDateComponentAction) {
         this.dateTimeFormatter = dateTimeFormatter;
         this.zoneId = zoneId;
+        this.onMissingDateComponentAction = onMissingDateComponentAction;
     }
 
     @Override
@@ -68,37 +70,69 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
         if (locale.equals(dateTimeFormatter.getLocale())) {
             return this;
         }
-        return new DatetimeProcessorCustom(dateTimeFormatter.withLocale(locale), zoneId);
+        return new DatetimeProcessorCustom(dateTimeFormatter.withLocale(locale), zoneId, onMissingDateComponentAction);
     }
 
     @Override
     public DatetimeProcessor withDefaultZone(ZoneId zoneId) {
-        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorCustom(dateTimeFormatter, zoneId);
+        return this.zoneId.equals(zoneId) ? this : new DatetimeProcessorCustom(dateTimeFormatter, zoneId, onMissingDateComponentAction);
     }
 
-    private static LocalDate resolveDateFromTemporal(TemporalAccessor parsed) {
+    private LocalDate resolveDateFromTemporal(TemporalAccessor parsed, ZoneId zone) {
         final LocalDate query = parsed.query(TemporalQueries.localDate());
         if (query != null) {
             return query;
         }
-        int year = DatetimeProcessorUtil.UNIX_EPOCH_YEAR;
-        int month = 1;
-        int day = 1;
+        final int year;
+        final int month;
+        final int day;
+        LocalDate currentDate = null;
         if (parsed.isSupported(ChronoField.YEAR)) {
             year = parsed.get(ChronoField.YEAR);
         } else if (parsed.isSupported(ChronoField.YEAR_OF_ERA)) {
             year = parsed.get(ChronoField.YEAR_OF_ERA);
         } else if (parsed.isSupported(IsoFields.WEEK_BASED_YEAR)) {
             year = parsed.get(IsoFields.WEEK_BASED_YEAR);
+        } else {
+            if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_ZERO) {
+                year = DatetimeProcessorUtil.UNIX_EPOCH_YEAR;
+            } else if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_CURRENT) {
+                currentDate = LocalDate.now(zone);
+                year = currentDate.getYear();
+            } else {
+                throw new IllegalStateException("Unknown OnMissingDateComponentAction: " + onMissingDateComponentAction);
+            }
         }
         if (parsed.isSupported(ChronoField.MONTH_OF_YEAR)) {
             month = parsed.get(ChronoField.MONTH_OF_YEAR);
         } else if (parsed.isSupported(IsoFields.QUARTER_OF_YEAR)) {
             int quarter = parsed.get(IsoFields.QUARTER_OF_YEAR);
             month = quarter * 3 - 2;
+        } else {
+            if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_ZERO) {
+                month = 1;
+            } else if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_CURRENT) {
+                if (currentDate == null) {
+                    currentDate = LocalDate.now(zone);
+                }
+                month = currentDate.getMonthValue();
+            } else {
+                throw new IllegalStateException("Unknown OnMissingDateComponentAction: " + onMissingDateComponentAction);
+            }
         }
         if (parsed.isSupported(ChronoField.DAY_OF_MONTH)) {
             day = parsed.get(ChronoField.DAY_OF_MONTH);
+        } else {
+            if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_ZERO) {
+                day = 1;
+            } else if (onMissingDateComponentAction == OnMissingDateComponentAction.SET_CURRENT) {
+                if (currentDate == null) {
+                    currentDate = LocalDate.now(zone);
+                }
+                day = currentDate.getDayOfMonth();
+            } else {
+                throw new IllegalStateException("Unknown OnMissingDateComponentAction: " + onMissingDateComponentAction);
+            }
         }
         return LocalDate.of(year, month, day);
     }
@@ -136,12 +170,12 @@ class DatetimeProcessorCustom implements DatetimeProcessor {
      */
     private ZonedDateTime parseMillisFailSafe(String datetime, ZoneId defaultZoneId) {
         final TemporalAccessor parsed = dateTimeFormatter.parse(datetime);
-        final LocalDate localDate = resolveDateFromTemporal(parsed);
-        final LocalTime localTime = resolveTimeFromTemporal(parsed);
         ZoneId zone = parsed.query(TemporalQueries.zone());
         if (zone == null) {
             zone = defaultZoneId;
         }
+        final LocalDate localDate = resolveDateFromTemporal(parsed, zone);
+        final LocalTime localTime = resolveTimeFromTemporal(parsed);
         return ZonedDateTime.of(localDate, localTime, zone);
     }
 
