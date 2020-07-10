@@ -4,7 +4,7 @@
   <groupId>com.axibase</groupId>
   <artifactId>date-processor</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.7</version>
+  <version>1.0.8</version>
   <name>Axibase Date Processor</name>
   <description>Library for manipulating timestamps using Axibase datetime syntax</description>
   <url>https://axibase.com/docs/atsd/shared/time-pattern.html#date-and-time-patterns</url>
