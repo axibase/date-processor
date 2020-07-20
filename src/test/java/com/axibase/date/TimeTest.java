@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 
 import org.junit.Test;
 
@@ -73,12 +74,12 @@ public class TimeTest {
         assertThat(parseISO8601("2017-09-12T07:47Z"), is(Instant.parse("2017-09-12T07:47:00.000Z").toEpochMilli()));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = DateTimeParseException.class)
     public void testParseOptimizedNoZoneException() {
         parseISO8601("2017-09-12T07:47:59.999999");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = DateTimeParseException.class)
     public void testParseOptimizedTooMuchFractionOfSecondException() {
         parseISO8601("2017-09-12T07:47:59.9999999999Z");
     }

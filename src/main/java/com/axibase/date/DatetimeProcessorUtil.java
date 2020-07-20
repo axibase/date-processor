@@ -1,12 +1,7 @@
 package com.axibase.date;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.time.format.DateTimeParseException;
 import java.time.zone.ZoneRules;
 
 @SuppressWarnings("squid:S109") // magic constant
@@ -122,7 +117,7 @@ public final class DatetimeProcessorUtil {
     static LocalDateTime parseTivoliDate(String date) {
         final int length = date.length();
         if (length != TIVOLI_LENGTH) {
-            throw new IllegalArgumentException(date + " is not a valid Tivoli date: length must be " + TIVOLI_LENGTH);
+            throw new DateTimeParseException(date + " is not a valid Tivoli date: length must be " + TIVOLI_LENGTH, date, 0);
         }
         return parseTivoliDate(date, length);
     }
@@ -132,7 +127,7 @@ public final class DatetimeProcessorUtil {
             final ZoneId zoneId = ZoneOffset.of(date.substring(TIVOLI_LENGTH + 1));
             return parseTivoliDate(date, TIVOLI_LENGTH).atZone(zoneId);
         } else {
-            throw new IllegalArgumentException(date + " is not a valid Tivoli date with zone id");
+            throw new DateTimeParseException(date + " is not a valid Tivoli date with zone id", date, 0);
         }
     }
 
@@ -194,8 +189,8 @@ public final class DatetimeProcessorUtil {
             final LocalDateTime localDateTime = parseIso8601AsLocalDateTime(date, delimiter, context);
             final ZoneId zoneId = extractOffset(date, context.offset, offsetType, defaultOffset);
             return ZonedDateTime.of(localDateTime, zoneId);
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Failed to parse date " + date, e);
+        } catch (DateTimeException e) {
+            throw new DateTimeParseException("Failed to parse date " + date + ": " + e.getMessage(), date, 0, e);
         }
     }
 
@@ -208,12 +203,12 @@ public final class DatetimeProcessorUtil {
         final ZoneId zoneId;
         if (offset == length) {
             if (offsetType != ZoneOffsetType.NONE || defaultOffset == null) {
-                throw new IllegalStateException("Zone offset required");
+                throw new DateTimeParseException("Zone offset required", date, offset);
             }
             zoneId = defaultOffset;
         } else {
             if (offsetType == ZoneOffsetType.NONE) {
-                throw new IllegalStateException("Zone offset unexpected");
+                throw new DateTimeParseException("Zone offset unexpected", date, offset);
             }
             if (offset == length - 1 && date.charAt(offset) == 'Z') {
                 zoneId = ZoneOffset.UTC;
@@ -230,19 +225,20 @@ public final class DatetimeProcessorUtil {
 
     private static int parseInt(String value, int beginIndex, int endIndex, int valueLength) throws NumberFormatException {
         if (beginIndex < 0 || endIndex > valueLength || beginIndex >= endIndex) {
-            throw new NumberFormatException(value);
+            throw new DateTimeParseException("Failed to parse number at index ", value, beginIndex);
         }
-        int result = resolveDigitByCode(value.charAt(beginIndex));
+        int result = resolveDigitByCode(value, beginIndex);
         for (int i = beginIndex + 1; i < endIndex; ++i) {
-            result = result * 10 + resolveDigitByCode(value.charAt(i));
+            result = result * 10 + resolveDigitByCode(value, i);
         }
         return result;
     }
 
-    private static int resolveDigitByCode(char c) {
+    private static int resolveDigitByCode(String value, int index) {
+        final char c = value.charAt(index);
         final int result = c - '0';
         if (result < 0 || result > 9) {
-            throw new NumberFormatException("Invalid digit: " + c);
+            throw new DateTimeParseException("Failed to parse number at index ", value, index);
         }
         return result;
     }
@@ -250,7 +246,7 @@ public final class DatetimeProcessorUtil {
     private static void checkOffset(String value, int offset, char expected) throws IndexOutOfBoundsException {
         char found = value.charAt(offset);
         if (found != expected) {
-            throw new IndexOutOfBoundsException("Expected '" + expected + "' character but found '" + found + "'");
+            throw new DateTimeParseException("Expected '" + expected + "' character but found '" + found + "'", value, offset);
         }
     }
 
@@ -289,7 +285,7 @@ public final class DatetimeProcessorUtil {
         if (offset < length && date.charAt(offset) == '.') {
             final int startPos = ++offset;
             final int endPosExcl = Math.min(offset + 9, length);
-            int frac = resolveDigitByCode(date.charAt(offset++));
+            int frac = resolveDigitByCode(date, offset++);
             while (offset < endPosExcl) {
                 final int digit = date.charAt(offset) - '0';
                 if (digit < 0 || digit > 9) {
@@ -316,8 +312,8 @@ public final class DatetimeProcessorUtil {
             final LocalDateTime localDateTime = parseIso8601AsLocalDateTime(date, delimiter, parsingContext);
             final ZoneOffset zoneOffset = parseOffset(parsingContext.offset, date);
             return OffsetDateTime.of(localDateTime, zoneOffset);
-        } catch (RuntimeException e) {
-            throw new IllegalArgumentException("Failed to parse date " + date, e);
+        } catch (DateTimeException e) {
+            throw new DateTimeParseException("Failed to parse date " + date + ": " + e.getMessage(), date, 0, e);
         }
     }
 
@@ -325,7 +321,7 @@ public final class DatetimeProcessorUtil {
         final int length = date.length();
         final ZoneOffset zoneOffset;
         if (offset == length) {
-            throw new IllegalStateException("Zone offset required");
+            throw new DateTimeParseException("Zone offset required", date, offset);
         } else {
             if (offset == length - 1 && date.charAt(offset) == 'Z') {
                 zoneOffset = ZoneOffset.UTC;
