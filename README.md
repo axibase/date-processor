@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/axibase/date-processor.svg?branch=master)](https://travis-ci.org/axibase/date-processor)
+[![Build status](https://github.com/axibase/date-processor/workflows/Build%20date-processor/badge.svg)](https://github.com/axibase/date-processor/actions)
 [![License](https://img.shields.io/badge/License-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.axibase/date-processor/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.axibase/date-processor)
 [![Known Vulnerabilities](https://snyk.io/test/github/axibase/date-processor/badge.svg?targetFile=pom.xml)](https://snyk.io/test/github/axibase/date-processor?targetFile=pom.xml)
