@@ -1,6 +1,7 @@
 package com.axibase.date;
 
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
@@ -15,6 +16,17 @@ import java.util.regex.Pattern;
 public class PatternResolver {
     private static final Pattern OPTIMIZED_PATTERN = Pattern.compile("yyyy-MM-dd('T'|T| )HH:mm:ss(\\.S[S]{0,8})?(Z{1,2}|'Z'|XXX)?");
     private static final Pattern DISABLE_LENIENT_MODE = Pattern.compile("^(?:u+|[^u]*u{1,3}[A-Za-z0-9]+)$");
+    private static final String MONDAY_BASED_DAY_OF_WEEK_NUMBER_PATTERN = resolveMondayBasedDayOfWeekNumberPattern();
+
+    private static String resolveMondayBasedDayOfWeekNumberPattern() {
+        final ZonedDateTime now = ZonedDateTime.now();
+        final DateTimeFormatter oldFormatter = DateTimeFormatter.ofPattern("ccccc");
+        if (now.format(oldFormatter).equals(String.valueOf(now.getDayOfWeek().getValue()))) {
+            return "ccccc";
+        } else {
+            return "c";
+        }
+    }
 
     public static DatetimeProcessor createNewFormatter(String pattern) {
         return createNewFormatter(pattern, ZoneId.systemDefault());
@@ -151,7 +163,7 @@ public class PatternResolver {
                 for (int i = 1; i < uCount; i++) {
                     sb.append('0');
                 }
-                sb.append("ccccc");
+                sb.append(MONDAY_BASED_DAY_OF_WEEK_NUMBER_PATTERN);
             }
             uCount = 0;
         }
