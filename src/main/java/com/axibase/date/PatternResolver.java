@@ -4,17 +4,22 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class resolves creates for Axibase-supported datetime syntax. Each DatetimeProcessor object is immutable,
+ * This class creates processors for Axibase-supported datetime syntax. Each DatetimeProcessor object is immutable,
  * so consider caching them for better performance in client application.
  */
 public class PatternResolver {
     private static final Pattern OPTIMIZED_PATTERN = Pattern.compile("yyyy-MM-dd('T'|T| )HH:mm:ss(\\.S[S]{0,8})?(Z{1,2}|'Z'|XXX)?");
     private static final Pattern DISABLE_LENIENT_MODE = Pattern.compile("^(?:u+|[^u]*u{1,3}[A-Za-z0-9]+)$");
+    private static final String MONDAY_BASED_DAY_OF_WEEK_NUMBER_PATTERN = String.valueOf((char)0xc);
 
     public static DatetimeProcessor createNewFormatter(String pattern) {
         return createNewFormatter(pattern, ZoneId.systemDefault());
@@ -61,14 +66,22 @@ public class PatternResolver {
                 return new DatetimeProcessorIso8601(fractions, offsetType, zoneId);
             }
         }
-        final String preprocessedPattern = preprocessPattern(pattern);
-        final DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder()
-                .parseCaseInsensitive();
-        if (enableLenient(preprocessedPattern)) {
-            builder.parseLenient();
+        final List<String> preprocessedPattern = preprocessPattern(pattern);
+        final DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder().parseCaseInsensitive();
+
+        boolean lenient = false;
+        for (String pat : preprocessedPattern) {
+            if (MONDAY_BASED_DAY_OF_WEEK_NUMBER_PATTERN.equals(pat)) {
+                builder.appendValue(ChronoField.DAY_OF_WEEK);
+            } else {
+                if (enableLenient(pat) && !lenient) {
+                    builder.parseLenient();
+                    lenient = true;
+                }
+                builder.appendPattern(pat);
+            }
         }
         final DateTimeFormatter dateTimeFormatter = builder
-                .appendPattern(preprocessedPattern)
                 .toFormatter(Locale.US)
                 .withResolverStyle(ResolverStyle.STRICT);
         return new DatetimeProcessorCustom(dateTimeFormatter, zoneId, onMissingDateComponentAction);
@@ -92,7 +105,7 @@ public class PatternResolver {
      * @param pattern time formatting pattern
      * @return JSR-310 compatible pattern
      */
-    private static String preprocessPattern(String pattern) {
+    private static List<String> preprocessPattern(String pattern) {
         final int length = pattern.length();
         boolean insideQuotes = false;
         final StringBuilder sb = new StringBuilder(pattern.length() + 5);
@@ -138,12 +151,18 @@ public class PatternResolver {
         }
         state.updateU(sb);
         state.updateZ(sb);
-        return sb.toString();
+        if (state.parts == null) {
+            return Collections.singletonList(sb.toString());
+        } else {
+            state.parts.add(sb.toString());
+            return state.parts;
+        }
     }
 
     private static final class DateFormatParsingState {
         private int zCount = 0;
         private int uCount = 0;
+        private List<String> parts = null;
 
         private void updateU(StringBuilder sb) {
             if (uCount > 0) {
@@ -151,7 +170,12 @@ public class PatternResolver {
                 for (int i = 1; i < uCount; i++) {
                     sb.append('0');
                 }
-                sb.append("ccccc");
+                if (parts == null) {
+                    parts = new ArrayList<>();
+                }
+                parts.add(sb.toString());
+                parts.add(MONDAY_BASED_DAY_OF_WEEK_NUMBER_PATTERN);
+                sb.setLength(0);
             }
             uCount = 0;
         }
