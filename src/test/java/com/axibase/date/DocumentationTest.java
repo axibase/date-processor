@@ -28,6 +28,7 @@ public class DocumentationTest {
         assertThat(formatDateTime(millis, "u", zoneId), is("3"));
         assertThat(formatDateTime(millis, "uuuu", zoneId), is("0003"));
         assertThat(formatDateTime(millis, "uu", zoneId), is("03"));
+        assertThat(formatDateTime(millis, "u-u-u", zoneId), is("3-3-3"));
     }
 
     private static String formatDateTime(long millis, String pattern, ZoneId zoneId) {
