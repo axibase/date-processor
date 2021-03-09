@@ -31,4 +31,4 @@ jobs:
       with:
         java-version: ${{matrix.java_version}}
     - name: Build with Maven
-      run: mvn -B package --file pom.xml -Ptesting
+      run: mvn -B package --file pom.xml
